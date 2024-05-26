@@ -1,15 +1,13 @@
-FROM node:20-alpine
-RUN apk add chromium
+FROM ghcr.io/puppeteer/puppeteer:22.10.0
+
+USER node
 
 ENV NODE_ENV=production
 WORKDIR /usr/src/app
-COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
-
+COPY package.json .
 RUN npm install --production --silent 
-RUN mv node_modules ../
 COPY . .
 EXPOSE 3000
-RUN chown -R node /usr/src/app
-USER node
+
 
 CMD ["node", "index.js"]

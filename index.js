@@ -4,19 +4,25 @@ const express = require('express');
 const cors = require('cors');
 const booleanParser = require('express-query-boolean');
 const numberParser = require('express-query-int');
+const {queryParser}  = require('express-query-parser');
 
 const app = express()
 const port = 3000
 
 app.use(booleanParser());
 app.use(numberParser());
+app.use(queryParser({
+  parseNull: true,
+  parseUndefined: true,
+  parseBoolean: true,
+  parseNumber: true
+}));
 
 app.get('/pdfs', cors(), async (request, response) => {
   const browser = await pdfService.launchBrowser();
-  const { filename, options } = parseRequest(request);
-  const res = await pdfService.printPdf({ htmlContents: request.body, browser, options });
+  const res = await pdfService.printPdf({ url: request.query.url, browser, options: {} });
   await browser.close();
-  response.attachment(`${filename}.pdf`).send(res);
+  response.attachment(`name.pdf`).send(res);
 });
 
 app.options('/*', cors());
