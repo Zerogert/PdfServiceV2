@@ -33,6 +33,7 @@ app.get('/pdfs', cors(), async (request, response) => {
     return;
   }
   catch (err) {
+    console.error('ERROR: ', err);
     response.sendStatus(400);
     return;
   }
@@ -60,6 +61,7 @@ app.post('/pdfs', cors(), async (request, response) => {
     response.attachment(`document.pdf`).send(result);
     return;
   } catch (err) {
+    console.error('ERROR: ', err);
     response.sendStatus(400);
     return;
    }
