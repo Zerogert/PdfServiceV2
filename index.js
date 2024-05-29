@@ -1,4 +1,5 @@
 const pdfService = require('./modules/pdf-service');
+const browserProvider = require('./modules/browser-provider');
 
 const express = require('express');
 const cors = require('cors');
@@ -10,6 +11,10 @@ const { queryParser } = require('express-query-parser');
 const app = express()
 const port = 3000
 
+const isCloseBrowser = process.env.IS_CLOSE_BROWSER === "true" || false;
+//possible values https://pptr.dev/api/puppeteer.puppeteerlifecycleevent
+const isWaitUntil = process.env.IS_WAIT_UNTIL || 'networkidle0';
+
 app.use(booleanParser());
 app.use(numberParser());
 app.use(bodyParser.text({ type: 'text/html' }));
@@ -20,13 +25,20 @@ app.use(queryParser({
   parseNumber: true
 }));
 
+async function processCloseBrowser(browser){
+  if(isCloseBrowser){
+    console.info('Close browser');
+    await browser.close();
+  }
+}
+
 function getOptions(request) {
-  return { format: 'a4', landscape: false, printBackground: true, waitUntil: 'networkidle0', ...request.query, path: null };
+  return { format: 'a4', landscape: false, printBackground: true, waitUntil: isWaitUntil, ...request.query, path: null };
 }
 
 app.get('/pdfs', cors(), async (request, response) => {
   options = getOptions(request);
-  const browser = await pdfService.launchBrowser();
+  const browser = await browserProvider.getInstance();
   try {
     const result = await pdfService.getPdfFromUrl({ url: request.query.url, browser, options: options });
     response.attachment(`document.pdf`).send(result);
@@ -38,14 +50,14 @@ app.get('/pdfs', cors(), async (request, response) => {
     return;
   }
   finally {
-    await browser.close();
+    await processCloseBrowser(browser);
   }
 });
 
 app.get('/healthcheck', cors(), async (request, response) => {
-  const browser = await pdfService.launchBrowser();
+  const browser = await browserProvider.getInstance();
   const result = await pdfService.getPdfFromUrl({ url: 'https://www.google.com/', browser, options: {} });
-  await browser.close();
+  await processCloseBrowser(browser);
   response.sendStatus(200);
 });
 
@@ -55,7 +67,7 @@ app.get('/', cors(), async (request, response) => {
 
 app.post('/pdfs', cors(), async (request, response) => {
   options = getOptions(request);
-  const browser = await pdfService.launchBrowser();
+  const browser = await browserProvider.getInstance();
   try {
     const result = await pdfService.getPdfFromHtml({ htmlContents: request.body, browser, options: options });
     response.attachment(`document.pdf`).send(result);
@@ -66,7 +78,7 @@ app.post('/pdfs', cors(), async (request, response) => {
     return;
    }
   finally {
-    await browser.close();
+    await processCloseBrowser(browser);
   }
 });
 
