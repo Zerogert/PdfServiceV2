@@ -25,29 +25,57 @@ app.use(queryParser({
   parseNumber: true
 }));
 
-async function processCloseBrowser(browser){
-  if(isCloseBrowser){
-    console.info('Close browser');
+async function processCloseBrowser(browser) {
+  if (isCloseBrowser) {
+    console.debug('Close browser');
     await browser.close();
   }
 }
+
+function isValidUrl(url) {
+  try {
+    if (!url) return false;
+
+    new URL(url);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function isValidContent(content) {
+  try {
+    if (!content) return false;
+    if (content.includes("html")) return true;
+
+    return false
+  } catch (err) {
+    return false;
+  }
+}
+
 
 function getOptions(request) {
   return { format: 'a4', landscape: false, printBackground: true, waitUntil: isWaitUntil, ...request.query, path: null };
 }
 
 app.get('/pdfs', cors(), async (request, response) => {
-  options = getOptions(request);
+  const url = request.query.url;
+  if (!isValidUrl(url)) {
+    response.sendStatus(400);
+    return;
+  }
+
+  //if the browser fails to start, we cannot restore functionality
   const browser = await browserProvider.getInstance();
   try {
-    const result = await pdfService.getPdfFromUrl({ url: request.query.url, browser, options: options });
+    const options = getOptions(request);
+    const result = await pdfService.getPdfFromUrl({ url: url, browser, options: options });
     response.attachment(`document.pdf`).send(result);
-    return;
   }
   catch (err) {
     console.error('ERROR: ', err);
     response.sendStatus(400);
-    return;
   }
   finally {
     await processCloseBrowser(browser);
@@ -66,17 +94,22 @@ app.get('/', cors(), async (request, response) => {
 });
 
 app.post('/pdfs', cors(), async (request, response) => {
-  options = getOptions(request);
+  const content = request.body;
+  if (!isValidContent(content)) {
+    response.sendStatus(400);
+    return;
+  }
+
+  //if the browser fails to start, we cannot restore functionality
   const browser = await browserProvider.getInstance();
   try {
+    const options = getOptions(request);
     const result = await pdfService.getPdfFromHtml({ htmlContents: request.body, browser, options: options });
     response.attachment(`document.pdf`).send(result);
-    return;
   } catch (err) {
     console.error('ERROR: ', err);
     response.sendStatus(400);
-    return;
-   }
+  }
   finally {
     await processCloseBrowser(browser);
   }
