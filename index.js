@@ -25,6 +25,8 @@ app.use(queryParser({
   parseNumber: true
 }));
 
+browserProvider.getInstance().then(x=>processCloseBrowser(x));
+
 async function processCloseBrowser(browser) {
   if (isCloseBrowser) {
     console.debug('Close browser');
