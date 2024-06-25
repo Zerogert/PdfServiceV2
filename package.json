@@ -1,21 +1,16 @@
 {
-  "name": "pdfservice",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "express-query-boolean": "^2.0.0",
-    "express-query-int": "^3.0.0",
-    "express-query-parser": "^1.3.3",
-    "puppeteer": "^22.9.0",
-    "puppeteer-core": "^22.9.0"
+    "name": "chromium-production-dependency",
+    "version": "0.0.0",
+    "description": "This package demonstrates using @sparticuz/chromium as a production dependency. WARNING: This package is over 50 megabytes and will likely not deploy using anything other than self-host",
+    "license": "ISC",
+    "author": {
+      "name": "Kyle McNally"
+    },
+    "main": "index.js",
+    "scripts": {
+      "test": "node index.js"
+    },
+    "dependencies": {
+       "puppeteer": "^22.9.0"
+    }
   }
-}
